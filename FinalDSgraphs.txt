@@ -1,0 +1,84 @@
+// GraphsDS2.cpp : This file contains the 'main' function. Program execution begins and ends there.
+//
+
+#include <iostream>
+#include <vector>
+#include<queue>
+using namespace std;
+void addEdge(vector<vector<pair<int, int> > >& adj, int u,
+    int v, int time, int cost, int m) {
+    cost += time * m;
+    adj[u][v] = make_pair(cost, time);
+    adj[v][u] = make_pair(cost, time);
+}
+int djikstra(vector<vector<pair<int, int> > >& grid, int s, int d, int m) {
+    vector<int> dist(grid.size(), 1e9);
+    vector<int> times(grid.size(), 0);
+    dist[s] = 0;
+    times[s] = -1;
+    priority_queue<pair<int, int>, vector<pair<int, int> >, greater<pair<int, int> > > q;
+    q.push({ 0, s });
+    vector<int> parent(grid.size(), -1);
+    while (!q.empty()) {
+        int current = q.top().second;
+        q.pop();
+        for (int k = 1; k < grid[current].size(); k++) {
+            if (grid[current][k].first != 0) {
+                if (dist[current] + grid[current][k].first < dist[k]) {
+                    dist[k] = dist[current] + grid[current][k].first;
+                    times[k] = times[current] + grid[current][k].second + 1;
+                    if (k != s && k != d)
+                        dist[k] += m;
+                    parent[k] = current;
+                    q.push({ dist[k], k });
+                }
+            }
+            else
+                continue;
+        }
+    }
+    vector<int> path;
+    if (dist[d] != 1e9) {
+        int current = d;
+        while (current != -1) {
+            path.push_back(current);
+            current = parent[current];
+        }
+        reverse(path.begin(), path.end());
+        for (int i = 0; i < path.size(); i++) {
+            cout << path[i];
+            if (i < path.size() - 1)
+                cout << " -> ";
+        }
+        cout << endl;
+    }
+    cout << "Total time " << times[d] << " hours\n";
+    return dist[d];
+}
+int main() {
+    int n = 0;
+    int m = 0;
+    int r = 0;
+    int source, destination, time, cost;
+    cout << "please enter amount M:\n";
+    cin >> m;
+    cout << "please enter number of cities:\n";
+    cin >> n;
+    cout << "please enter number of routes:\n";
+    cin >> r;
+    cout << "please enter source,destination,time and cost for each route:\n";
+    vector<vector<pair<int, int> > > grid(n + 1, vector<pair<int, int> >(n + 1, make_pair(0, 0)));
+    for (int i = 0; i < r; i++) {
+        cin >> source;
+        cin >> destination;
+        cin >> time;
+        cin >> cost;
+        addEdge(grid, source, destination, time, cost, m);
+    }
+    cout << "please enter source city:\n";
+    cin >> source;
+    cout << "please enter destination city:\n";
+    cin >> destination;
+    int answer = djikstra(grid, source, destination, m);
+    cout << "Total cost = " << answer <<"$";
+}
